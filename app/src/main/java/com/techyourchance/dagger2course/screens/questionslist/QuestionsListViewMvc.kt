@@ -1,21 +1,23 @@
 package com.techyourchance.dagger2course.screens.questionslist
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.annotation.IdRes
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.techyourchance.dagger2course.R
 import com.techyourchance.dagger2course.questions.Question
-import java.util.ArrayList
+import com.techyourchance.dagger2course.screens.common.viewMvc.BaseViewMvc
 
 class QuestionsListViewMvc(
     layoutInflater: LayoutInflater,
     parent: ViewGroup?
+) : BaseViewMvc<QuestionsListViewMvc.Listener>(
+    layoutInflater,
+    parent,
+    R.layout.layout_questions_list
 ) {
 
     interface Listener {
@@ -23,19 +25,13 @@ class QuestionsListViewMvc(
         fun onQuestionClicked(clickedQuestion: Question)
     }
 
-    private val swipeRefresh: SwipeRefreshLayout
+    private val swipeRefresh: SwipeRefreshLayout = findViewById(R.id.swipeRefresh)
     private val recyclerView: RecyclerView
     private val questionsAdapter: QuestionsAdapter
-
-    private val listeners = HashSet<Listener>()
-
-    val rootView: View = layoutInflater.inflate(R.layout.layout_questions_list, parent, false)
-    private val context: Context get() = rootView.context
 
     init {
 
         // init pull-down-to-refresh
-        swipeRefresh = findViewById(R.id.swipeRefresh)
         swipeRefresh.setOnRefreshListener {
             for (listener in listeners) {
                 listener.onRefreshClicked()
@@ -52,19 +48,6 @@ class QuestionsListViewMvc(
         }
         recyclerView.adapter = questionsAdapter
 
-    }
-
-    private fun <T : View?> findViewById(@IdRes id: Int): T {
-        return rootView.findViewById<T>(id)
-    }
-
-    //Register listener
-    fun registerListener(listener: Listener) {
-        this.listeners.add(listener)
-    }
-
-    fun unregisterListener(listener: Listener) {
-        this.listeners.remove(listener)
     }
 
     fun showProgressIndication() {
