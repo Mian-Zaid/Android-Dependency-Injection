@@ -2,73 +2,107 @@ package com.techyourchance.dagger2course.screens.questiondetails
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import com.techyourchance.dagger2course.questions.FetchQuestionDetailsUseCase
-import com.techyourchance.dagger2course.screens.common.ScreensNavigator
-import com.techyourchance.dagger2course.screens.common.activities.BaseActivity
-import com.techyourchance.dagger2course.screens.common.dialogs.DialogsNavigator
-import com.techyourchance.dagger2course.screens.common.viewsmvc.ViewMvcFactory
+import android.text.Html
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.techyourchance.dagger2course.Constants
+import com.techyourchance.dagger2course.R
+import com.techyourchance.dagger2course.networking.StackoverflowApi
+import com.techyourchance.dagger2course.screens.common.dialogs.ServerErrorDialogFragment
+import com.techyourchance.dagger2course.screens.common.toolbar.MyToolbar
 import kotlinx.coroutines.*
-import javax.inject.Inject
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-class QuestionDetailsActivity : BaseActivity(), QuestionDetailsViewMvc.Listener {
+class QuestionDetailsActivity : AppCompatActivity() {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    @Inject lateinit var fetchQuestionDetailsUseCase: FetchQuestionDetailsUseCase
-    @Inject lateinit var dialogsNavigator: DialogsNavigator
-    @Inject lateinit var screensNavigator: ScreensNavigator
-    @Inject lateinit var viewMvcFactory: ViewMvcFactory
+    private lateinit var toolbar: MyToolbar
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var txtQuestionBody: TextView
 
-    private lateinit var viewMvc: QuestionDetailsViewMvc
+    private lateinit var stackoverflowApi: StackoverflowApi
 
     private lateinit var questionId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        injector.inject(this)
         super.onCreate(savedInstanceState)
-        viewMvc = viewMvcFactory.newQuestionDetailsViewMvc(null)
-        setContentView(viewMvc.rootView)
+        setContentView(R.layout.layout_question_details)
 
+        txtQuestionBody = findViewById(R.id.txt_question_body)
+
+        // init toolbar
+        toolbar = findViewById(R.id.toolbar)
+        toolbar.setNavigateUpListener { onBackPressed() }
+
+        // init pull-down-to-refresh (used as a progress indicator)
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.isEnabled = false
+
+        // init retrofit
+        val retrofit = Retrofit.Builder()
+                .baseUrl(Constants.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        stackoverflowApi = retrofit.create(StackoverflowApi::class.java)
+
+        // retrieve question ID passed from outside
         questionId = intent.extras!!.getString(EXTRA_QUESTION_ID)!!
     }
 
     override fun onStart() {
         super.onStart()
-        viewMvc.registerListener(this)
         fetchQuestionDetails()
     }
 
     override fun onStop() {
         super.onStop()
         coroutineScope.coroutineContext.cancelChildren()
-        viewMvc.unregisterListener(this)
     }
 
     private fun fetchQuestionDetails() {
         coroutineScope.launch {
-            viewMvc.showProgressIndication()
+            showProgressIndication()
             try {
-                val result = fetchQuestionDetailsUseCase.fetchQuestion(questionId)
-                when(result) {
-                    is FetchQuestionDetailsUseCase.Result.Success -> {
-                        viewMvc.bindQuestionWithBody(result.question)
+                val response = stackoverflowApi.questionDetails(questionId)
+                if (response.isSuccessful && response.body() != null) {
+                    val questionBody = response.body()!!.question.body
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        txtQuestionBody.text = Html.fromHtml(questionBody, Html.FROM_HTML_MODE_LEGACY)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        txtQuestionBody.text = Html.fromHtml(questionBody)
                     }
-                    is FetchQuestionDetailsUseCase.Result.Failure -> onFetchFailed()
+                } else {
+                    onFetchFailed()
+                }
+            } catch (t: Throwable) {
+                if (t !is CancellationException) {
+                    onFetchFailed()
                 }
             } finally {
-                viewMvc.hideProgressIndication()
+                hideProgressIndication()
             }
 
         }
     }
 
     private fun onFetchFailed() {
-        dialogsNavigator.showServerErrorDialog()
+        supportFragmentManager.beginTransaction()
+                .add(ServerErrorDialogFragment.newInstance(), null)
+                .commitAllowingStateLoss()
     }
 
-    override fun onBackClicked() {
-        screensNavigator.navigateBack()
+    private fun showProgressIndication() {
+        swipeRefresh.isRefreshing = true
+    }
+
+    private fun hideProgressIndication() {
+        swipeRefresh.isRefreshing = false
     }
 
     companion object {
