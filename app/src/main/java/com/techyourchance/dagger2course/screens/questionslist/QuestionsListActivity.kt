@@ -1,10 +1,14 @@
 package com.techyourchance.dagger2course.screens.questionslist
 
 import android.os.Bundle
+import android.transition.Scene
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
+import com.techyourchance.dagger2course.MyApplication
 import com.techyourchance.dagger2course.questions.FetchQuestionUseCase
 import com.techyourchance.dagger2course.questions.Question
+import com.techyourchance.dagger2course.screens.common.ScreenNavigator
+import com.techyourchance.dagger2course.screens.common.dialogs.DialogNavigator
 import com.techyourchance.dagger2course.screens.common.dialogs.ServerErrorDialogFragment
 import com.techyourchance.dagger2course.screens.questiondetails.QuestionDetailsActivity
 import kotlinx.coroutines.*
@@ -17,7 +21,11 @@ class QuestionsListActivity : AppCompatActivity(), QuestionsListViewMvc.Listener
 
     private lateinit var viewMvc: QuestionsListViewMvc
 
-    private var fetchQuestionUseCase = FetchQuestionUseCase()
+    private lateinit var fetchQuestionUseCase: FetchQuestionUseCase
+
+    private lateinit var dialogNavigator: DialogNavigator
+
+    private lateinit var screenNavigator: ScreenNavigator
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +34,12 @@ class QuestionsListActivity : AppCompatActivity(), QuestionsListViewMvc.Listener
         viewMvc = QuestionsListViewMvc(LayoutInflater.from(this), null)
 
         setContentView(viewMvc.rootView)
+
+        fetchQuestionUseCase = (application as MyApplication).fetchQuestionUseCase
+
+        dialogNavigator = DialogNavigator(supportFragmentManager)
+
+        screenNavigator = ScreenNavigator(this)
     }
 
     override fun onStart() {
@@ -61,9 +75,7 @@ class QuestionsListActivity : AppCompatActivity(), QuestionsListViewMvc.Listener
     }
 
     private fun onFetchFailed() {
-        supportFragmentManager.beginTransaction()
-            .add(ServerErrorDialogFragment.newInstance(), null)
-            .commitAllowingStateLoss()
+        dialogNavigator.showServerErrorDialog()
     }
 
     /**
@@ -74,7 +86,7 @@ class QuestionsListActivity : AppCompatActivity(), QuestionsListViewMvc.Listener
     }
 
     override fun onQuestionClicked(clickedQuestion: Question) {
-        QuestionDetailsActivity.start(this, clickedQuestion.id)
+        screenNavigator.toDetailsActivity(clickedQuestion.id)
     }
 
 

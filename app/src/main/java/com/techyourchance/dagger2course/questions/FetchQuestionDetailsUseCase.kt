@@ -1,27 +1,17 @@
 package com.techyourchance.dagger2course.questions
 
-import com.techyourchance.dagger2course.Constants
 import com.techyourchance.dagger2course.networking.StackoverflowApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
-class FetchQuestionDetailsUseCase {
+class FetchQuestionDetailsUseCase(private val stackoverflowApi: StackoverflowApi) {
 
 
     sealed class Result {
         class Success(val body: String) : Result()
         object Failure : Result()
     }
-
-    // init retrofit
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(Constants.BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    private val stackoverflowApi = retrofit.create(StackoverflowApi::class.java)
 
     suspend fun fetchQuestionDetails(questionId: String): Result {
         return withContext(Dispatchers.IO) {

@@ -7,9 +7,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
 import com.techyourchance.dagger2course.Constants
+import com.techyourchance.dagger2course.MyApplication
 import com.techyourchance.dagger2course.networking.StackoverflowApi
 import com.techyourchance.dagger2course.questions.FetchQuestionDetailsUseCase
 import com.techyourchance.dagger2course.questions.FetchQuestionUseCase
+import com.techyourchance.dagger2course.screens.common.ScreenNavigator
+import com.techyourchance.dagger2course.screens.common.dialogs.DialogNavigator
 import com.techyourchance.dagger2course.screens.common.dialogs.ServerErrorDialogFragment
 import kotlinx.coroutines.*
 import retrofit2.Retrofit
@@ -23,10 +26,16 @@ class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Liste
 
     private lateinit var viewMvc: QuestionDetailViewMvc
 
-    private var fetchQuestionDetailsUseCase = FetchQuestionDetailsUseCase()
+    private lateinit var fetchQuestionDetailsUseCase: FetchQuestionDetailsUseCase
+
+    private lateinit var dialogNavigator: DialogNavigator
+
+    private lateinit var screenNavigator: ScreenNavigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        fetchQuestionDetailsUseCase = (application as MyApplication).fetchQuestionDetailsUseCase
 
         viewMvc = QuestionDetailViewMvc(LayoutInflater.from(this), null)
         setContentView(viewMvc.rootView)
@@ -34,6 +43,10 @@ class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Liste
         // retrieve question ID passed from outside
         questionId = intent.extras!!.getString(EXTRA_QUESTION_ID)!!
         Log.d("TAG", "onCreate: $questionId")
+
+        dialogNavigator = DialogNavigator(supportFragmentManager)
+
+        screenNavigator = ScreenNavigator(this)
     }
 
     override fun onStart() {
@@ -68,9 +81,7 @@ class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Liste
     }
 
     private fun onFetchFailed() {
-        supportFragmentManager.beginTransaction()
-            .add(ServerErrorDialogFragment.newInstance(), null)
-            .commitAllowingStateLoss()
+        dialogNavigator.showServerErrorDialog()
     }
 
 
@@ -87,7 +98,7 @@ class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Liste
      * listener functions
      */
     override fun onBack() {
-        onBackPressed()
+        screenNavigator.navigateBack()
     }
 
 
