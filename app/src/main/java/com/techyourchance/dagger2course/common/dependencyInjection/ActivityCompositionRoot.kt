@@ -1,13 +1,8 @@
-package com.techyourchance.dagger2course.common.composition
+package com.techyourchance.dagger2course.common.dependencyInjection
 
-import android.app.Activity
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
-import com.techyourchance.dagger2course.questions.FetchQuestionDetailsUseCase
-import com.techyourchance.dagger2course.questions.FetchQuestionUseCase
 import com.techyourchance.dagger2course.screens.common.ScreenNavigator
-import com.techyourchance.dagger2course.screens.common.dialogs.DialogNavigator
-import com.techyourchance.dagger2course.screens.common.viewMvc.ViewMvcFactory
 
 class ActivityCompositionRoot(
     private val activity: AppCompatActivity,
