@@ -38,7 +38,8 @@ class QuestionDetailsActivity : BaseActivity(), QuestionDetailViewMvc.Listener {
 
         fetchQuestionDetailsUseCase = compositionRoot.fetchQuestionDetailsUseCase
 
-        viewMvc = QuestionDetailViewMvc(LayoutInflater.from(this), null)
+        viewMvc = compositionRoot.questionListMvcFactory.newQuestionDetailsMvc(null)
+
         setContentView(viewMvc.rootView)
 
         // retrieve question ID passed from outside
