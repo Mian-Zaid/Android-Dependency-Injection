@@ -11,7 +11,6 @@ class FetchQuestionUseCase(private val stackoverflowApi: StackoverflowApi) {
     sealed class Result {
         class Success(val questions: List<Question>) : Result()
         object Failure : Result()
-
     }
 
     suspend fun fetchLatestQuestions(): Result {

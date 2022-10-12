@@ -12,13 +12,14 @@ import com.techyourchance.dagger2course.networking.StackoverflowApi
 import com.techyourchance.dagger2course.questions.FetchQuestionDetailsUseCase
 import com.techyourchance.dagger2course.questions.FetchQuestionUseCase
 import com.techyourchance.dagger2course.screens.common.ScreenNavigator
+import com.techyourchance.dagger2course.screens.common.activities.BaseActivity
 import com.techyourchance.dagger2course.screens.common.dialogs.DialogNavigator
 import com.techyourchance.dagger2course.screens.common.dialogs.ServerErrorDialogFragment
 import kotlinx.coroutines.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Listener {
+class QuestionDetailsActivity : BaseActivity(), QuestionDetailViewMvc.Listener {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -35,7 +36,7 @@ class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Liste
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fetchQuestionDetailsUseCase = (application as MyApplication).fetchQuestionDetailsUseCase
+        fetchQuestionDetailsUseCase = compositionRoot.fetchQuestionDetailsUseCase
 
         viewMvc = QuestionDetailViewMvc(LayoutInflater.from(this), null)
         setContentView(viewMvc.rootView)
@@ -44,9 +45,9 @@ class QuestionDetailsActivity : AppCompatActivity(), QuestionDetailViewMvc.Liste
         questionId = intent.extras!!.getString(EXTRA_QUESTION_ID)!!
         Log.d("TAG", "onCreate: $questionId")
 
-        dialogNavigator = DialogNavigator(supportFragmentManager)
+        dialogNavigator = compositionRoot.dialogNavigator
 
-        screenNavigator = ScreenNavigator(this)
+        screenNavigator = compositionRoot.screenNavigator
     }
 
     override fun onStart() {

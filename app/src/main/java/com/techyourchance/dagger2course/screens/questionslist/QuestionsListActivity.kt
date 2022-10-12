@@ -8,12 +8,13 @@ import com.techyourchance.dagger2course.MyApplication
 import com.techyourchance.dagger2course.questions.FetchQuestionUseCase
 import com.techyourchance.dagger2course.questions.Question
 import com.techyourchance.dagger2course.screens.common.ScreenNavigator
+import com.techyourchance.dagger2course.screens.common.activities.BaseActivity
 import com.techyourchance.dagger2course.screens.common.dialogs.DialogNavigator
 import com.techyourchance.dagger2course.screens.common.dialogs.ServerErrorDialogFragment
 import com.techyourchance.dagger2course.screens.questiondetails.QuestionDetailsActivity
 import kotlinx.coroutines.*
 
-class QuestionsListActivity : AppCompatActivity(), QuestionsListViewMvc.Listener {
+class QuestionsListActivity : BaseActivity(), QuestionsListViewMvc.Listener {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -35,11 +36,11 @@ class QuestionsListActivity : AppCompatActivity(), QuestionsListViewMvc.Listener
 
         setContentView(viewMvc.rootView)
 
-        fetchQuestionUseCase = (application as MyApplication).fetchQuestionUseCase
+        fetchQuestionUseCase = compositionRoot.fetchQuestionUseCase
 
-        dialogNavigator = DialogNavigator(supportFragmentManager)
+        dialogNavigator = compositionRoot.dialogNavigator
 
-        screenNavigator = ScreenNavigator(this)
+        screenNavigator = compositionRoot.screenNavigator
     }
 
     override fun onStart() {
