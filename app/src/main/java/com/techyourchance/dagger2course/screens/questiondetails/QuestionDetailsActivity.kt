@@ -23,32 +23,28 @@ class QuestionDetailsActivity : BaseActivity(), QuestionDetailViewMvc.Listener {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
+    private lateinit var fetchQuestionDetailsUseCase: FetchQuestionDetailsUseCase
+    private lateinit var dialogNavigator: DialogNavigator
+    private lateinit var screenNavigator: ScreenNavigator
+
     private lateinit var questionId: String
 
     private lateinit var viewMvc: QuestionDetailViewMvc
-
-    private lateinit var fetchQuestionDetailsUseCase: FetchQuestionDetailsUseCase
-
-    private lateinit var dialogNavigator: DialogNavigator
-
-    private lateinit var screenNavigator: ScreenNavigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         fetchQuestionDetailsUseCase = compositionRoot.fetchQuestionDetailsUseCase
+        dialogNavigator = compositionRoot.dialogNavigator
+        screenNavigator = compositionRoot.screenNavigator
 
-        viewMvc = compositionRoot.questionListMvcFactory.newQuestionDetailsMvc(null)
-
+        viewMvc = compositionRoot.viewMvcFactory.newQuestionDetailsMvc(null)
         setContentView(viewMvc.rootView)
 
         // retrieve question ID passed from outside
         questionId = intent.extras!!.getString(EXTRA_QUESTION_ID)!!
-        Log.d("TAG", "onCreate: $questionId")
 
-        dialogNavigator = compositionRoot.dialogNavigator
 
-        screenNavigator = compositionRoot.screenNavigator
     }
 
     override fun onStart() {
