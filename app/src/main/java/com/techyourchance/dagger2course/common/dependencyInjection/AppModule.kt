@@ -1,13 +1,17 @@
 package com.techyourchance.dagger2course.common.dependencyInjection
 
+import android.app.Application
 import androidx.annotation.UiThread
 import com.techyourchance.dagger2course.Constants
 import com.techyourchance.dagger2course.networking.StackoverflowApi
+import dagger.Module
+import dagger.Provides
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 @UiThread
-class AppCompositionRoot {
+@Module
+class AppModule(val application: Application) {
     // init retrofit
     private val retrofit by lazy {
         Retrofit.Builder()
@@ -20,4 +24,9 @@ class AppCompositionRoot {
         retrofit.create(StackoverflowApi::class.java)
     }
 
+    @Provides
+    fun application() = application
+
+    @Provides
+    fun stackoverflowApi() = stackoverflowApi
 }
